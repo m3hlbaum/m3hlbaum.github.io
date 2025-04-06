@@ -126,16 +126,58 @@
     </audio>
     
     <script>
-        // Initialize letter wrapping immediately
-        const title = document.getElementById('title');
-        const titleText = title.textContent;
-        title.textContent = '';
-        [...titleText].forEach((letter) => {
-            const span = document.createElement('span');
-            span.textContent = letter;
-            span.style.display = 'inline-block';
-            span.style.transformOrigin = 'center';
-            title.appendChild(span);
+        // Make sure DOM is loaded before initializing
+        document.addEventListener('DOMContentLoaded', () => {
+            const title = document.getElementById('title');
+            const titleText = title.textContent;
+            title.textContent = '';
+            
+            // Create spans for each letter
+            [...titleText].forEach((letter) => {
+                const span = document.createElement('span');
+                span.textContent = letter;
+                span.style.display = 'inline-block';
+                span.style.transformOrigin = 'center';
+                title.appendChild(span);
+            });
+
+            // Scroll effects with more dramatic values
+            window.addEventListener('scroll', function() {
+                const scrollPosition = window.scrollY;
+                const viewportHeight = window.innerHeight;
+                const scrollRatio = scrollPosition / viewportHeight;
+                const maxScroll = document.body.scrollHeight - viewportHeight;
+                const totalScrollRatio = scrollPosition / maxScroll;
+                
+                // Title effect - individual letter animations
+                const letters = title.children;
+                [...letters].forEach((letter, i) => {
+                    // Increased scale factor for more dramatic effect
+                    const individualScale = 1 + (scrollRatio * 2.0 * Math.sin(i * 1.5));
+                    
+                    // More dramatic thinning effect
+                    const fontStretch = i % 3 === 0 ? 
+                        `${100 - scrollRatio * 70}%` : '100%';
+                    
+                    // More pronounced letter spacing
+                    const spacing = -0.05 - (scrollRatio * 0.5 * Math.cos(i));
+                    
+                    // Increased vertical movement
+                    const verticalShift = i % 2 === 0 ? 
+                        Math.sin(scrollPosition/80 + i) * scrollRatio * 100 : 0;
+                    
+                    // Increased horizontal movement
+                    const horizontalShift = Math.sin(scrollPosition/80 + i * 0.5) * scrollRatio * 60;
+                    
+                    // Apply transformations
+                    letter.style.transform = `
+                        scale(${individualScale})
+                        translate(${horizontalShift}px, ${verticalShift}px)
+                    `;
+                    letter.style.letterSpacing = `${spacing}em`;
+                    letter.style.fontStretch = fontStretch;
+                });
+            });
         });
 
         const music = document.getElementById('music');

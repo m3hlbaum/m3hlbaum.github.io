@@ -117,8 +117,8 @@
     </div>
     
     <div class="image-container">
-        <img id="image1" class="image" src="assets/image1.png" alt="Initial image">
-        <img id="image2" class="image" src="assets/image2.png" alt="Second image">
+        <img id="image1" class="image" src="assets/image1.jpg" alt="Initial image">
+        <img id="image2" class="image" src="assets/image2.jpg" alt="Second image">
     </div>
     
     <div class="player-container">
@@ -157,6 +157,8 @@
             const scrollPosition = window.scrollY;
             const viewportHeight = window.innerHeight;
             const scrollRatio = scrollPosition / viewportHeight;
+            const maxScroll = document.body.scrollHeight - viewportHeight;
+            const totalScrollRatio = scrollPosition / maxScroll;
             
             // Title effect - growing and overlapping
             const scaleFactor = 1 + scrollRatio * 0.8;
@@ -166,33 +168,23 @@
             const shift = scrollRatio * 20;
             title.style.transform = `translateX(${Math.sin(scrollPosition/100) * shift}px)`;
             
-            // Image blending effect - asymmetrical and slightly random
-            if (scrollRatio > 0.1) { // Start transition after scrolling a bit
-                // Base opacity based on scroll position
-                let baseOpacity = (scrollRatio - 0.1) / 0.5; // Transition over 50% of viewport
-                baseOpacity = Math.min(baseOpacity, 1); // Cap at 1
+            // Image blending effect - more gradual as requested
+            // Start almost immediately and go all the way to the end
+            if (scrollPosition > 0) {
+                // Very gradual transition across the entire scroll range
+                // Using totalScrollRatio to ensure it completes at the end of the page
+                let baseOpacity = totalScrollRatio;
                 
-                // Add some random variation for asymmetrical effect
-                const randomVariation = Math.sin(scrollPosition / 30) * 0.15;
+                // Slight asymmetry but much more subtle
+                const randomVariation = Math.sin(scrollPosition / 200) * 0.05;
                 
-                // Apply the opacity with variation
+                // Apply opacity without any position shifts
                 image1.style.opacity = 1 - (baseOpacity + randomVariation);
                 image2.style.opacity = baseOpacity + randomVariation;
-                
-                // Add slight position shifts for more dynamic effect
-                const xShift1 = Math.sin(scrollPosition / 50) * 10;
-                const yShift1 = Math.cos(scrollPosition / 40) * 8;
-                image1.style.transform = `translate(${xShift1}px, ${yShift1}px)`;
-                
-                const xShift2 = Math.cos(scrollPosition / 60) * 12;
-                const yShift2 = Math.sin(scrollPosition / 45) * 10;
-                image2.style.transform = `translate(${xShift2}px, ${yShift2}px)`;
             } else {
-                // Reset to initial state if at top
+                // Reset at the very top
                 image1.style.opacity = 1;
                 image2.style.opacity = 0;
-                image1.style.transform = 'translate(0, 0)';
-                image2.style.transform = 'translate(0, 0)';
             }
         });
         

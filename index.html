@@ -202,15 +202,23 @@
             }
         });
         
-        // Web Audio API setup
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const analyser = audioContext.createAnalyser();
-        const source = audioContext.createMediaElementSource(music);
-        source.connect(analyser);
-        analyser.connect(audioContext.destination);
-        analyser.fftSize = 256;
+        // Initialize audio context and analyzer when needed, not immediately
+        let audioContext;
+        let analyser;
+        let source;
 
-        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        function initializeAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                source = audioContext.createMediaElementSource(music);
+                source.connect(analyser);
+                analyser.connect(audioContext.destination);
+                analyser.fftSize = 256;
+            }
+        }
+
+        const dataArray = new Uint8Array(analyser ? analyser.frequencyBinCount : 0);
 
         // Add this at the start of your script
         music.addEventListener('loadedmetadata', () => {
@@ -223,38 +231,42 @@
 
         // Update the togglePlay function to remove visualization references
         function togglePlay() {
-            if (!isPlaying) {
-                audioContext.resume().then(() => {
-                    console.log('AudioContext resumed');
+            try {
+                if (!isPlaying) {
+                    initializeAudio(); // Initialize audio context on first play
                     
-                    const currentTime = Date.now();
-                    const audioDuration = music.duration;
-                    
-                    if (!audioDuration) {
-                        console.error('Audio duration not available');
-                        return;
-                    }
-                    
-                    const startPosition = (currentTime / 1000) % audioDuration;
-                    
-                    music.currentTime = startPosition;
-                    music.play()
-                        .then(() => {
-                            console.log('Playback started');
-                            listenBox.textContent = "pause";
-                            startBrightnessModulation();
-                        })
-                        .catch(error => {
-                            console.error('Playback failed:', error);
-                        });
-                });
-            } else {
-                music.pause();
-                listenBox.textContent = "listen";
-                stopBrightnessModulation();
+                    audioContext.resume().then(() => {
+                        const currentTime = Date.now();
+                        const audioDuration = music.duration;
+                        
+                        if (!audioDuration) {
+                            console.error('Audio duration not available');
+                            return;
+                        }
+                        
+                        const startPosition = (currentTime / 1000) % audioDuration;
+                        music.currentTime = startPosition;
+                        
+                        music.play()
+                            .then(() => {
+                                console.log('Playback started');
+                                listenBox.textContent = "pause";
+                                startBrightnessModulation();
+                            })
+                            .catch(error => {
+                                console.error('Playback failed:', error);
+                            });
+                    });
+                } else {
+                    music.pause();
+                    listenBox.textContent = "listen";
+                    stopBrightnessModulation();
+                }
+                
+                isPlaying = !isPlaying;
+            } catch (error) {
+                console.error('Toggle play error:', error);
             }
-
-            isPlaying = !isPlaying;
         }
 
         // Brightness modulation

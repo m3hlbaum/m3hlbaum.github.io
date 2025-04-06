@@ -38,14 +38,6 @@
             white-space: nowrap;
             line-height: 0.9;
         }
-
-        .title span {
-            transition: transform 0.3s ease-out, 
-                        letter-spacing 0.3s ease-out, 
-                        font-stretch 0.3s ease-out;
-            display: inline-block;
-            will-change: transform; /* Optimize performance */
-        }
         
         .image-container {
             position: fixed;
@@ -60,13 +52,11 @@
         }
         
         .image {
-            max-width: 90vw; /* Changed from 80% to viewport units */
-            max-height: 70vh; /* Changed from 60% to viewport units */
-            width: auto;
-            height: auto;
+            max-width: 80%;
+            max-height: 60%;
             object-fit: contain;
             position: absolute;
-            transition: filter 0.2s ease, opacity 0.3s ease;
+            transition: filter 0.2s ease;
         }
         
         #image1 {
@@ -131,62 +121,10 @@
     </audio>
     
     <script>
-        // Make sure DOM is loaded before initializing
-        document.addEventListener('DOMContentLoaded', () => {
-            const title = document.getElementById('title');
-            const titleText = title.textContent;
-            title.textContent = '';
-            
-            // Create spans for each letter
-            [...titleText].forEach((letter) => {
-                const span = document.createElement('span');
-                span.textContent = letter;
-                span.style.display = 'inline-block';
-                span.style.transformOrigin = 'center';
-                title.appendChild(span);
-            });
-
-            // Scroll effects with more dramatic values
-            window.addEventListener('scroll', function() {
-                const scrollPosition = window.scrollY;
-                const viewportHeight = window.innerHeight;
-                const scrollRatio = scrollPosition / viewportHeight;
-                const maxScroll = document.body.scrollHeight - viewportHeight;
-                const totalScrollRatio = scrollPosition / maxScroll;
-                
-                // Title effect - individual letter animations
-                const letters = title.children;
-                [...letters].forEach((letter, i) => {
-                    // Increased scale factor for more dramatic effect
-                    const individualScale = 1 + (scrollRatio * 2.0 * Math.sin(i * 1.5));
-                    
-                    // More dramatic thinning effect
-                    const fontStretch = i % 3 === 0 ? 
-                        `${100 - scrollRatio * 70}%` : '100%';
-                    
-                    // More pronounced letter spacing
-                    const spacing = -0.05 - (scrollRatio * 0.5 * Math.cos(i));
-                    
-                    // Increased vertical movement
-                    const verticalShift = i % 2 === 0 ? 
-                        Math.sin(scrollPosition/80 + i) * scrollRatio * 100 : 0;
-                    
-                    // Increased horizontal movement
-                    const horizontalShift = Math.sin(scrollPosition/80 + i * 0.5) * scrollRatio * 60;
-                    
-                    // Apply transformations
-                    letter.style.transform = `
-                        scale(${individualScale})
-                        translate(${horizontalShift}px, ${verticalShift}px)
-                    `;
-                    letter.style.letterSpacing = `${spacing}em`;
-                    letter.style.fontStretch = fontStretch;
-                });
-            });
-        });
-
         const music = document.getElementById('music');
         const listenBox = document.getElementById('listenBox');
+        const dots = document.querySelectorAll('.dot');
+        const title = document.getElementById('title');
         const image1 = document.getElementById('image1');
         const image2 = document.getElementById('image2');
         
@@ -200,34 +138,13 @@
             const maxScroll = document.body.scrollHeight - viewportHeight;
             const totalScrollRatio = scrollPosition / maxScroll;
             
-            // Title effect - individual letter animations
-            const letters = title.children;
-            [...letters].forEach((letter, i) => {
-                // Different scale factor for each letter
-                const individualScale = 1 + (scrollRatio * 0.8 * Math.sin(i * 1.5));
-                
-                // Make some letters thinner (every third letter)
-                const fontStretch = i % 3 === 0 ? 
-                    `${100 - scrollRatio * 50}%` : '100%';
-                
-                // Individual letter spacing
-                const spacing = -0.05 - (scrollRatio * 0.3 * Math.cos(i));
-                
-                // Vertical shift for some letters
-                const verticalShift = i % 2 === 0 ? 
-                    Math.sin(scrollPosition/100 + i) * scrollRatio * 50 : 0;
-                
-                // Horizontal shift
-                const horizontalShift = Math.sin(scrollPosition/100 + i * 0.5) * scrollRatio * 30;
-                
-                // Apply transformations
-                letter.style.transform = `
-                    scale(${individualScale})
-                    translate(${horizontalShift}px, ${verticalShift}px)
-                `;
-                letter.style.letterSpacing = `${spacing}em`;
-                letter.style.fontStretch = fontStretch;
-            });
+            // Title effect - growing and overlapping
+            const scaleFactor = 1 + scrollRatio * 0.8;
+            const letterSpacingValue = -0.05 - scrollRatio * 0.3;
+            title.style.fontSize = `calc(15vw * ${scaleFactor})`;
+            title.style.letterSpacing = `${letterSpacingValue}em`;
+            const shift = scrollRatio * 20;
+            title.style.transform = `translateX(${Math.sin(scrollPosition/100) * shift}px)`;
             
             // Image blending effect - more gradual as requested
             // Start almost immediately and go all the way to the end
@@ -248,63 +165,16 @@
                 image2.style.opacity = 0;
             }
         });
-
-        window.addEventListener('scroll', function() {
-            // Use requestAnimationFrame for smooth animations
-            requestAnimationFrame(() => {
-                const scrollPosition = window.scrollY;
-                const viewportHeight = window.innerHeight;
-                const scrollRatio = scrollPosition / viewportHeight;
-                const maxScroll = document.body.scrollHeight - viewportHeight;
-                const totalScrollRatio = scrollPosition / maxScroll;
-                
-                // Title effect - individual letter animations
-                const letters = title.children;
-                [...letters].forEach((letter, i) => {
-                    // Smoother scale factor
-                    const individualScale = 1 + (scrollRatio * 1.5 * Math.sin(i * 1.2));
-                    
-                    // Smoother thinning effect
-                    const fontStretch = i % 3 === 0 ? 
-                        `${100 - (scrollRatio * 50)}%` : '100%';
-                    
-                    // Smoother letter spacing
-                    const spacing = -0.05 - (scrollRatio * 0.3 * Math.cos(i * 0.8));
-                    
-                    // Smoother movements with easing
-                    const verticalShift = i % 2 === 0 ? 
-                        Math.sin(scrollPosition/120 + i * 0.8) * scrollRatio * 80 : 0;
-                    
-                    const horizontalShift = Math.sin(scrollPosition/100 + i * 0.4) * scrollRatio * 40;
-                    
-                    // Apply transformations with GPU acceleration
-                    letter.style.transform = `
-                        translate3d(${horizontalShift}px, ${verticalShift}px, 0)
-                        scale(${individualScale})
-                    `;
-                    letter.style.letterSpacing = `${spacing}em`;
-                    letter.style.fontStretch = fontStretch;
-                });
-            });
-        }, { passive: true }); // Add passive flag for better scroll performance
         
-        // Initialize audio context and analyzer when needed, not immediately
-        let audioContext;
-        let analyser;
-        let source;
+        // Web Audio API setup
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const analyser = audioContext.createAnalyser();
+        const source = audioContext.createMediaElementSource(music);
+        source.connect(analyser);
+        analyser.connect(audioContext.destination);
+        analyser.fftSize = 256;
 
-        function initializeAudio() {
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioContext.createAnalyser();
-                source = audioContext.createMediaElementSource(music);
-                source.connect(analyser);
-                analyser.connect(audioContext.destination);
-                analyser.fftSize = 256;
-            }
-        }
-
-        const dataArray = new Uint8Array(analyser ? analyser.frequencyBinCount : 0);
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
 
         // Add this at the start of your script
         music.addEventListener('loadedmetadata', () => {
@@ -317,42 +187,38 @@
 
         // Update the togglePlay function to remove visualization references
         function togglePlay() {
-            try {
-                if (!isPlaying) {
-                    initializeAudio(); // Initialize audio context on first play
+            if (!isPlaying) {
+                audioContext.resume().then(() => {
+                    console.log('AudioContext resumed');
                     
-                    audioContext.resume().then(() => {
-                        const currentTime = Date.now();
-                        const audioDuration = music.duration;
-                        
-                        if (!audioDuration) {
-                            console.error('Audio duration not available');
-                            return;
-                        }
-                        
-                        const startPosition = (currentTime / 1000) % audioDuration;
-                        music.currentTime = startPosition;
-                        
-                        music.play()
-                            .then(() => {
-                                console.log('Playback started');
-                                listenBox.textContent = "pause";
-                                startBrightnessModulation();
-                            })
-                            .catch(error => {
-                                console.error('Playback failed:', error);
-                            });
-                    });
-                } else {
-                    music.pause();
-                    listenBox.textContent = "listen";
-                    stopBrightnessModulation();
-                }
-                
-                isPlaying = !isPlaying;
-            } catch (error) {
-                console.error('Toggle play error:', error);
+                    const currentTime = Date.now();
+                    const audioDuration = music.duration;
+                    
+                    if (!audioDuration) {
+                        console.error('Audio duration not available');
+                        return;
+                    }
+                    
+                    const startPosition = (currentTime / 1000) % audioDuration;
+                    
+                    music.currentTime = startPosition;
+                    music.play()
+                        .then(() => {
+                            console.log('Playback started');
+                            listenBox.textContent = "pause";
+                            startBrightnessModulation();
+                        })
+                        .catch(error => {
+                            console.error('Playback failed:', error);
+                        });
+                });
+            } else {
+                music.pause();
+                listenBox.textContent = "listen";
+                stopBrightnessModulation();
             }
+
+            isPlaying = !isPlaying;
         }
 
         // Brightness modulation
@@ -394,6 +260,7 @@
             image2.style.filter = "brightness(100%) contrast(100%)";
         }
 
+        // Handle end of audio
         music.addEventListener('ended', function() {
             isPlaying = false;
             listenBox.textContent = "listen";

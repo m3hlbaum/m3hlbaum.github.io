@@ -40,8 +40,11 @@
         }
 
         .title span {
-            transition: transform 0.2s ease-out, letter-spacing 0.2s ease-out, font-stretch 0.2s ease-out;
+            transition: transform 0.3s ease-out, 
+                        letter-spacing 0.3s ease-out, 
+                        font-stretch 0.3s ease-out;
             display: inline-block;
+            will-change: transform; /* Optimize performance */
         }
         
         .image-container {
@@ -57,11 +60,13 @@
         }
         
         .image {
-            max-width: 80%;
-            max-height: 60%;
+            max-width: 90vw; /* Changed from 80% to viewport units */
+            max-height: 70vh; /* Changed from 60% to viewport units */
+            width: auto;
+            height: auto;
             object-fit: contain;
             position: absolute;
-            transition: filter 0.2s ease;
+            transition: filter 0.2s ease, opacity 0.3s ease;
         }
         
         #image1 {
@@ -243,6 +248,45 @@
                 image2.style.opacity = 0;
             }
         });
+
+        window.addEventListener('scroll', function() {
+            // Use requestAnimationFrame for smooth animations
+            requestAnimationFrame(() => {
+                const scrollPosition = window.scrollY;
+                const viewportHeight = window.innerHeight;
+                const scrollRatio = scrollPosition / viewportHeight;
+                const maxScroll = document.body.scrollHeight - viewportHeight;
+                const totalScrollRatio = scrollPosition / maxScroll;
+                
+                // Title effect - individual letter animations
+                const letters = title.children;
+                [...letters].forEach((letter, i) => {
+                    // Smoother scale factor
+                    const individualScale = 1 + (scrollRatio * 1.5 * Math.sin(i * 1.2));
+                    
+                    // Smoother thinning effect
+                    const fontStretch = i % 3 === 0 ? 
+                        `${100 - (scrollRatio * 50)}%` : '100%';
+                    
+                    // Smoother letter spacing
+                    const spacing = -0.05 - (scrollRatio * 0.3 * Math.cos(i * 0.8));
+                    
+                    // Smoother movements with easing
+                    const verticalShift = i % 2 === 0 ? 
+                        Math.sin(scrollPosition/120 + i * 0.8) * scrollRatio * 80 : 0;
+                    
+                    const horizontalShift = Math.sin(scrollPosition/100 + i * 0.4) * scrollRatio * 40;
+                    
+                    // Apply transformations with GPU acceleration
+                    letter.style.transform = `
+                        translate3d(${horizontalShift}px, ${verticalShift}px, 0)
+                        scale(${individualScale})
+                    `;
+                    letter.style.letterSpacing = `${spacing}em`;
+                    letter.style.fontStretch = fontStretch;
+                });
+            });
+        }, { passive: true }); // Add passive flag for better scroll performance
         
         // Initialize audio context and analyzer when needed, not immediately
         let audioContext;

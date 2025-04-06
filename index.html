@@ -25,12 +25,12 @@
         }
         
         .title {
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: Arial, sans-serif;
             font-weight: normal;
-            font-size: 15vw;
-            letter-spacing: -0.05em;
+            font-size: 17vw;
+            letter-spacing: -0.1em;
             text-transform: lowercase;
-            width: 100%;
+            width: 120%;
             text-align: center;
             margin: 0;
             padding: 0;
@@ -78,8 +78,8 @@
         }
         
         .listen-box {
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 16px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
             font-weight: normal;
             padding: 10px 20px;
             border: 1px solid #333;
@@ -90,7 +90,7 @@
         }
         
         .listen-box:hover {
-            background-color: #f5f5f5;
+            background-color: #f1f1f1;
         }
         
         .visualizer {
@@ -189,18 +189,25 @@
         });
         
         function togglePlay() {
-            if (isPlaying) {
-                music.pause();
-                listenBox.textContent = "listen";
-                stopVisualization();
-            } else {
-                music.play();
-                listenBox.textContent = "pause";
-                startVisualization();
-            }
-            
-            isPlaying = !isPlaying;
+        if (!isPlaying) {
+            // Calculate a dynamic start position based on the current time
+            const currentTime = Date.now();
+            const audioDuration = music.duration || 180; // Default to 180 seconds if duration is not available
+            const startPosition = (currentTime / 1000) % audioDuration;
+
+            // Set the audio's current time and play
+            music.currentTime = startPosition;
+            music.play();
+            listenBox.textContent = "pause";
+            startVisualization();
+        } else {
+            music.pause();
+            listenBox.textContent = "listen";
+            stopVisualization();
         }
+
+        isPlaying = !isPlaying;
+    }
         
         function startVisualization() {
             const animateDots = () => {

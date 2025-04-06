@@ -188,52 +188,116 @@
             }
         });
         
-        function togglePlay() {
-        if (!isPlaying) {
-            // Calculate a dynamic start position based on the current time
-            const currentTime = Date.now();
-            const audioDuration = music.duration || 180; // Default to 180 seconds if duration is not available
-            const startPosition = (currentTime / 1000) % audioDuration;
+        // Web Audio API setup
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const analyser = audioContext.createAnalyser();
+        const source = audioContext.createMediaElementSource(music);
+        source.connect(analyser);
+        analyser.connect(audioContext.destination);
+        analyser.fftSize = 256;
 
-            // Set the audio's current time and play
-            music.currentTime = startPosition;
-            music.play();
-            listenBox.textContent = "pause";
-            startVisualization();
-        } else {
-            music.pause();
-            listenBox.textContent = "listen";
-            stopVisualization();
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+        // Add this at the start of your script
+        music.addEventListener('loadedmetadata', () => {
+            console.log('Audio metadata loaded, duration:', music.duration);
+        });
+
+        music.addEventListener('error', (e) => {
+            console.error('Audio error:', e);
+        });
+
+        function togglePlay() {
+            if (!isPlaying) {
+                // Resume the AudioContext if it is suspended
+                audioContext.resume().then(() => {
+                    console.log('AudioContext resumed');
+                    
+                    // Calculate a dynamic start position based on the current time
+                    const currentTime = Date.now();
+                    const audioDuration = music.duration;
+                    
+                    if (!audioDuration) {
+                        console.error('Audio duration not available');
+                        return;
+                    }
+                    
+                    const startPosition = (currentTime / 1000) % audioDuration;
+                    
+                    // Set the audio's current time and play
+                    music.currentTime = startPosition;
+                    music.play()
+                        .then(() => {
+                            console.log('Playback started');
+                            listenBox.textContent = "pause";
+                            startVisualization();
+                            startBrightnessModulation();
+                        })
+                        .catch(error => {
+                            console.error('Playback failed:', error);
+                        });
+                });
+            } else {
+                music.pause();
+                listenBox.textContent = "listen";
+                stopVisualization();
+                stopBrightnessModulation();
+            }
+
+            isPlaying = !isPlaying;
         }
 
-        isPlaying = !isPlaying;
-    }
-        
         function startVisualization() {
             const animateDots = () => {
                 if (!isPlaying) return;
-                
+
                 dots.forEach(dot => {
                     dot.style.opacity = Math.random();
                 });
-                
+
                 setTimeout(animateDots, 300);
             };
-            
+
             animateDots();
         }
-        
+
         function stopVisualization() {
             dots.forEach(dot => {
                 dot.style.opacity = 0;
             });
         }
-        
+
+        // Brightness modulation
+        let brightnessInterval;
+
+        function startBrightnessModulation() {
+            brightnessInterval = setInterval(() => {
+                analyser.getByteFrequencyData(dataArray);
+
+                // Calculate average volume
+                const averageVolume = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
+
+                // Map volume to brightness (e.g., 50% to 150%)
+                const brightness = 100 + (averageVolume / 255) * 100;
+
+                // Apply brightness to images
+                image1.style.filter = `brightness(${brightness}%)`;
+                image2.style.filter = `brightness(${brightness}%)`;
+            }, 100); // Update every 100ms
+        }
+
+        function stopBrightnessModulation() {
+            clearInterval(brightnessInterval);
+            image1.style.filter = "brightness(100%)"; // Reset brightness
+            image2.style.filter = "brightness(100%)"; // Reset brightness
+        }
+
         // Handle end of audio
         music.addEventListener('ended', function() {
             isPlaying = false;
             listenBox.textContent = "listen";
             stopVisualization();
+            stopBrightnessModulation();
         });
     </script>
 </body>

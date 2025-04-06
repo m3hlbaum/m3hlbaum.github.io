@@ -21,14 +21,14 @@
             width: 100%;
             display: flex;
             justify-content: center;
-            z-index: 1;
+            z-index: 3; /* Above images */
         }
         
         .title {
             font-family: Arial, Helvetica, sans-serif;
-            font-weight: normal; /* Not bold as requested */
-            font-size: 15vw; /* Starting size */
-            letter-spacing: -0.05em; /* Slightly squeezed */
+            font-weight: normal;
+            font-size: 15vw;
+            letter-spacing: -0.05em;
             text-transform: lowercase;
             width: 100%;
             text-align: center;
@@ -39,6 +39,34 @@
             line-height: 0.9;
         }
         
+        .image-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1; /* Between title and player */
+        }
+        
+        .image {
+            max-width: 80%;
+            max-height: 60%;
+            object-fit: contain;
+            position: absolute;
+        }
+        
+        #image1 {
+            z-index: 2; /* On top initially */
+        }
+        
+        #image2 {
+            z-index: 1; /* Behind initially */
+            opacity: 0; /* Hidden initially */
+        }
+        
         .player-container {
             position: fixed;
             bottom: 100px;
@@ -46,6 +74,7 @@
             width: 100%;
             display: flex;
             justify-content: center;
+            z-index: 3; /* Above images */
         }
         
         .listen-box {
@@ -64,7 +93,6 @@
             background-color: #f5f5f5;
         }
         
-        /* Simple music visualization dots */
         .visualizer {
             display: flex;
             justify-content: center;
@@ -86,6 +114,11 @@
 <body>
     <div class="title-container">
         <h1 class="title" id="title">mehlbaum</h1>
+    </div>
+    
+    <div class="image-container">
+        <img id="image1" class="image" src="assets/image1.png" alt="Initial image">
+        <img id="image2" class="image" src="assets/image2.png" alt="Second image">
     </div>
     
     <div class="player-container">
@@ -114,28 +147,53 @@
         const listenBox = document.getElementById('listenBox');
         const dots = document.querySelectorAll('.dot');
         const title = document.getElementById('title');
+        const image1 = document.getElementById('image1');
+        const image2 = document.getElementById('image2');
         
         let isPlaying = false;
         
-        // Scroll effect for the title
+        // Scroll effects
         window.addEventListener('scroll', function() {
             const scrollPosition = window.scrollY;
             const viewportHeight = window.innerHeight;
+            const scrollRatio = scrollPosition / viewportHeight;
             
-            // Calculate scale factor based on scroll position
-            // Starting at 15vw (as in CSS) and growing
-            const scaleFactor = 1 + (scrollPosition / viewportHeight) * 0.8;
-            
-            // Calculate overlap/stashing effect by reducing letter spacing
-            const letterSpacingValue = -0.05 - (scrollPosition / viewportHeight) * 0.3;
-            
-            // Apply transformations
+            // Title effect - growing and overlapping
+            const scaleFactor = 1 + scrollRatio * 0.8;
+            const letterSpacingValue = -0.05 - scrollRatio * 0.3;
             title.style.fontSize = `calc(15vw * ${scaleFactor})`;
             title.style.letterSpacing = `${letterSpacingValue}em`;
-            
-            // Add some horizontal shift to create more chaotic overlapping
-            const shift = (scrollPosition / viewportHeight) * 20;
+            const shift = scrollRatio * 20;
             title.style.transform = `translateX(${Math.sin(scrollPosition/100) * shift}px)`;
+            
+            // Image blending effect - asymmetrical and slightly random
+            if (scrollRatio > 0.1) { // Start transition after scrolling a bit
+                // Base opacity based on scroll position
+                let baseOpacity = (scrollRatio - 0.1) / 0.5; // Transition over 50% of viewport
+                baseOpacity = Math.min(baseOpacity, 1); // Cap at 1
+                
+                // Add some random variation for asymmetrical effect
+                const randomVariation = Math.sin(scrollPosition / 30) * 0.15;
+                
+                // Apply the opacity with variation
+                image1.style.opacity = 1 - (baseOpacity + randomVariation);
+                image2.style.opacity = baseOpacity + randomVariation;
+                
+                // Add slight position shifts for more dynamic effect
+                const xShift1 = Math.sin(scrollPosition / 50) * 10;
+                const yShift1 = Math.cos(scrollPosition / 40) * 8;
+                image1.style.transform = `translate(${xShift1}px, ${yShift1}px)`;
+                
+                const xShift2 = Math.cos(scrollPosition / 60) * 12;
+                const yShift2 = Math.sin(scrollPosition / 45) * 10;
+                image2.style.transform = `translate(${xShift2}px, ${yShift2}px)`;
+            } else {
+                // Reset to initial state if at top
+                image1.style.opacity = 1;
+                image2.style.opacity = 0;
+                image1.style.transform = 'translate(0, 0)';
+                image2.style.transform = 'translate(0, 0)';
+            }
         });
         
         function togglePlay() {

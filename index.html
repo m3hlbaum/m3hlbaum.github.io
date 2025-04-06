@@ -126,10 +126,20 @@
     </audio>
     
     <script>
+        // Initialize letter wrapping immediately
+        const title = document.getElementById('title');
+        const titleText = title.textContent;
+        title.textContent = '';
+        [...titleText].forEach((letter) => {
+            const span = document.createElement('span');
+            span.textContent = letter;
+            span.style.display = 'inline-block';
+            span.style.transformOrigin = 'center';
+            title.appendChild(span);
+        });
+
         const music = document.getElementById('music');
         const listenBox = document.getElementById('listenBox');
-        const dots = document.querySelectorAll('.dot');
-        const title = document.getElementById('title');
         const image1 = document.getElementById('image1');
         const image2 = document.getElementById('image2');
         
@@ -277,33 +287,19 @@
             }, 50); // Updated to 50ms for smoother updates
         }
 
+        function stopBrightnessModulation() {
+            clearInterval(brightnessInterval);
+            // Reset the smoothing variables
+            lastBrightness = 100;
+            lastContrast = 100;
+            image1.style.filter = "brightness(100%) contrast(100%)";
+            image2.style.filter = "brightness(100%) contrast(100%)";
+        }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            [...titleText].forEach((letter, i) => {            title.textContent = '';            const titleText = title.textContent;        document.addEventListener('DOMContentLoaded', () => {        // Add this after your existing DOM element declarations        });            stopBrightnessModulation();            listenBox.textContent = "listen";            isPlaying = false;        music.addEventListener('ended', function() {        // Handle end of audio        }            image2.style.filter = "brightness(100%) contrast(100%)";            image1.style.filter = "brightness(100%) contrast(100%)";            lastContrast = 100;            lastBrightness = 100;            // Reset the smoothing variables            clearInterval(brightnessInterval);        function stopBrightnessModulation() {                const span = document.createElement('span');
-                span.textContent = letter;
-                span.style.display = 'inline-block';
-                span.style.transformOrigin = 'center';
-                title.appendChild(span);
-            });
+        music.addEventListener('ended', function() {
+            isPlaying = false;
+            listenBox.textContent = "listen";
+            stopBrightnessModulation();
         });
     </script>
 </body>

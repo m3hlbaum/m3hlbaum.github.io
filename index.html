@@ -93,22 +93,6 @@
             background-color: #f1f1f1;
         }
         
-        .visualizer {
-            display: flex;
-            justify-content: center;
-            margin-top: 15px;
-            height: 10px;
-        }
-        
-        .dot {
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background-color: #333;
-            margin: 0 3px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
     </style>
 </head>
 <body>
@@ -127,13 +111,6 @@
                 listen
             </div>
             
-            <div class="visualizer">
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
-            </div>
         </div>
     </div>
     
@@ -207,13 +184,12 @@
             console.error('Audio error:', e);
         });
 
+        // Update the togglePlay function to remove visualization references
         function togglePlay() {
             if (!isPlaying) {
-                // Resume the AudioContext if it is suspended
                 audioContext.resume().then(() => {
                     console.log('AudioContext resumed');
                     
-                    // Calculate a dynamic start position based on the current time
                     const currentTime = Date.now();
                     const audioDuration = music.duration;
                     
@@ -224,13 +200,11 @@
                     
                     const startPosition = (currentTime / 1000) % audioDuration;
                     
-                    // Set the audio's current time and play
                     music.currentTime = startPosition;
                     music.play()
                         .then(() => {
                             console.log('Playback started');
                             listenBox.textContent = "pause";
-                            startVisualization();
                             startBrightnessModulation();
                         })
                         .catch(error => {
@@ -240,36 +214,16 @@
             } else {
                 music.pause();
                 listenBox.textContent = "listen";
-                stopVisualization();
                 stopBrightnessModulation();
             }
 
             isPlaying = !isPlaying;
         }
 
-        function startVisualization() {
-            const animateDots = () => {
-                if (!isPlaying) return;
-
-                dots.forEach(dot => {
-                    dot.style.opacity = Math.random();
-                });
-
-                setTimeout(animateDots, 300);
-            };
-
-            animateDots();
-        }
-
-        function stopVisualization() {
-            dots.forEach(dot => {
-                dot.style.opacity = 0;
-            });
-        }
-
         // Brightness modulation
         let brightnessInterval;
 
+        // Update the brightness modulation function to include contrast
         function startBrightnessModulation() {
             brightnessInterval = setInterval(() => {
                 analyser.getByteFrequencyData(dataArray);
@@ -277,12 +231,14 @@
                 // Calculate average volume
                 const averageVolume = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
 
-                // Map volume to brightness (e.g., 50% to 150%)
-                const brightness = 100 + (averageVolume / 255) * 100;
+                // Map volume to brightness (50% to 150%) and contrast (90% to 120%)
+                const brightness = 50 + (averageVolume / 255) * 100;
+                const contrast = 90 + (averageVolume / 255) * 30;
 
-                // Apply brightness to images
-                image1.style.filter = `brightness(${brightness}%)`;
-                image2.style.filter = `brightness(${brightness}%)`;
+                // Apply both filters to images
+                const filterValue = `brightness(${brightness}%) contrast(${contrast}%)`;
+                image1.style.filter = filterValue;
+                image2.style.filter = filterValue;
             }, 100); // Update every 100ms
         }
 
@@ -296,7 +252,6 @@
         music.addEventListener('ended', function() {
             isPlaying = false;
             listenBox.textContent = "listen";
-            stopVisualization();
             stopBrightnessModulation();
         });
     </script>

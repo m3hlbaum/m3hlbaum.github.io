@@ -56,6 +56,7 @@
             max-height: 60%;
             object-fit: contain;
             position: absolute;
+            transition: filter 0.2s ease;
         }
         
         #image1 {
@@ -223,7 +224,11 @@
         // Brightness modulation
         let brightnessInterval;
 
-        // Update the brightness modulation function to include contrast
+        // Smoothing variables
+        let lastBrightness = 100;
+        let lastContrast = 100;
+        const smoothingFactor = 0.3; // Adjust between 0 and 1 (lower = smoother)
+
         function startBrightnessModulation() {
             brightnessInterval = setInterval(() => {
                 analyser.getByteFrequencyData(dataArray);
@@ -231,21 +236,28 @@
                 // Calculate average volume
                 const averageVolume = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
 
-                // Map volume to brightness (50% to 150%) and contrast (90% to 120%)
-                const brightness = 50 + (averageVolume / 255) * 100;
-                const contrast = 90 + (averageVolume / 255) * 30;
+                // Calculate target values
+                const targetBrightness = 50 + (averageVolume / 255) * 100;
+                const targetContrast = 90 + (averageVolume / 255) * 30;
+
+                // Smooth the transitions
+                lastBrightness = lastBrightness + (targetBrightness - lastBrightness) * smoothingFactor;
+                lastContrast = lastContrast + (targetContrast - lastContrast) * smoothingFactor;
 
                 // Apply both filters to images
-                const filterValue = `brightness(${brightness}%) contrast(${contrast}%)`;
+                const filterValue = `brightness(${lastBrightness}%) contrast(${lastContrast}%)`;
                 image1.style.filter = filterValue;
                 image2.style.filter = filterValue;
-            }, 100); // Update every 100ms
+            }, 50); // Updated to 50ms for smoother updates
         }
 
         function stopBrightnessModulation() {
             clearInterval(brightnessInterval);
-            image1.style.filter = "brightness(100%)"; // Reset brightness
-            image2.style.filter = "brightness(100%)"; // Reset brightness
+            // Reset the smoothing variables
+            lastBrightness = 100;
+            lastContrast = 100;
+            image1.style.filter = "brightness(100%) contrast(100%)";
+            image2.style.filter = "brightness(100%) contrast(100%)";
         }
 
         // Handle end of audio

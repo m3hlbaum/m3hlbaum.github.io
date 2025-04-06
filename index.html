@@ -111,6 +111,11 @@
             .title-container {
                 top: 30px;
             }
+
+            /* Add impressum link mobile styles */
+            .impressum-link {
+                bottom: 60px; /* Adjust if needed to avoid overlap with player */
+            }
         }
         
     </style>
@@ -286,5 +291,10 @@
             stopBrightnessModulation();
         });
     </script>
+    <div style="position: fixed; bottom: 20px; right: 20px; z-index: 3;" class="impressum-link">
+        <a href="impressum.html" style="color: #333; text-decoration: none; font-size: 12px; font-family: Arial, sans-serif;">
+            Impressum
+        </a>
+    </div>
 </body>
 </html>

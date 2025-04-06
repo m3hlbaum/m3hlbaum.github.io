@@ -8,79 +8,76 @@
         body {
             margin: 0;
             padding: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
+            height: 300vh; /* Taller page to allow scrolling */
             background-color: white;
-            font-family: sans-serif;
+            font-family: Arial, Helvetica, sans-serif;
+            overflow-x: hidden;
         }
         
         .title-container {
+            position: fixed;
+            top: 50px;
+            left: 0;
             width: 100%;
             display: flex;
             justify-content: center;
-            margin-top: 50px;
+            z-index: 1;
         }
         
         .title {
             font-family: Arial, Helvetica, sans-serif;
-            font-weight: bold;
-            font-size: 15vw; /* Responsive font size */
+            font-weight: normal; /* Not bold as requested */
+            font-size: 15vw; /* Starting size */
             letter-spacing: -0.05em; /* Slightly squeezed */
             text-transform: lowercase;
             width: 100%;
             text-align: center;
             margin: 0;
             padding: 0;
+            transition: all 0.1s ease;
+            white-space: nowrap;
+            line-height: 0.9;
         }
         
         .player-container {
-            flex-grow: 1;
+            position: fixed;
+            bottom: 100px;
+            left: 0;
+            width: 100%;
             display: flex;
             justify-content: center;
-            align-items: center;
         }
         
-        .play-button {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background-color: white;
-            border: 2px solid #333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        .listen-box {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 16px;
+            font-weight: normal;
+            padding: 10px 20px;
+            border: 1px solid #333;
             cursor: pointer;
-            transition: transform 0.2s ease;
+            text-transform: lowercase;
+            background-color: white;
+            transition: background-color 0.2s ease;
         }
         
-        .play-button:hover {
-            transform: scale(1.1);
-        }
-        
-        .play-icon, .pause-icon {
-            width: 24px;
-            height: 24px;
-        }
-        
-        .pause-icon {
-            display: none;
+        .listen-box:hover {
+            background-color: #f5f5f5;
         }
         
         /* Simple music visualization dots */
         .visualizer {
             display: flex;
             justify-content: center;
-            margin-top: 20px;
-            height: 20px;
+            margin-top: 15px;
+            height: 10px;
         }
         
         .dot {
-            width: 8px;
-            height: 8px;
+            width: 5px;
+            height: 5px;
             border-radius: 50%;
             background-color: #333;
-            margin: 0 5px;
+            margin: 0 3px;
             opacity: 0;
             transition: opacity 0.3s ease;
         }
@@ -88,19 +85,13 @@
 </head>
 <body>
     <div class="title-container">
-        <h1 class="title">mehlbaum</h1>
+        <h1 class="title" id="title">mehlbaum</h1>
     </div>
     
     <div class="player-container">
         <div>
-            <div class="play-button" id="playButton" onclick="togglePlay()">
-                <svg class="play-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#333">
-                    <polygon points="5,3 19,12 5,21"/>
-                </svg>
-                <svg class="pause-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#333">
-                    <rect x="6" y="4" width="4" height="16"/>
-                    <rect x="14" y="4" width="4" height="16"/>
-                </svg>
+            <div class="listen-box" id="listenBox" onclick="togglePlay()">
+                listen
             </div>
             
             <div class="visualizer">
@@ -120,23 +111,41 @@
     
     <script>
         const music = document.getElementById('music');
-        const playButton = document.getElementById('playButton');
-        const playIcon = document.querySelector('.play-icon');
-        const pauseIcon = document.querySelector('.pause-icon');
+        const listenBox = document.getElementById('listenBox');
         const dots = document.querySelectorAll('.dot');
+        const title = document.getElementById('title');
         
         let isPlaying = false;
+        
+        // Scroll effect for the title
+        window.addEventListener('scroll', function() {
+            const scrollPosition = window.scrollY;
+            const viewportHeight = window.innerHeight;
+            
+            // Calculate scale factor based on scroll position
+            // Starting at 15vw (as in CSS) and growing
+            const scaleFactor = 1 + (scrollPosition / viewportHeight) * 0.8;
+            
+            // Calculate overlap/stashing effect by reducing letter spacing
+            const letterSpacingValue = -0.05 - (scrollPosition / viewportHeight) * 0.3;
+            
+            // Apply transformations
+            title.style.fontSize = `calc(15vw * ${scaleFactor})`;
+            title.style.letterSpacing = `${letterSpacingValue}em`;
+            
+            // Add some horizontal shift to create more chaotic overlapping
+            const shift = (scrollPosition / viewportHeight) * 20;
+            title.style.transform = `translateX(${Math.sin(scrollPosition/100) * shift}px)`;
+        });
         
         function togglePlay() {
             if (isPlaying) {
                 music.pause();
-                playIcon.style.display = 'block';
-                pauseIcon.style.display = 'none';
+                listenBox.textContent = "listen";
                 stopVisualization();
             } else {
                 music.play();
-                playIcon.style.display = 'none';
-                pauseIcon.style.display = 'block';
+                listenBox.textContent = "pause";
                 startVisualization();
             }
             
@@ -166,8 +175,7 @@
         // Handle end of audio
         music.addEventListener('ended', function() {
             isPlaying = false;
-            playIcon.style.display = 'block';
-            pauseIcon.style.display = 'none';
+            listenBox.textContent = "listen";
             stopVisualization();
         });
     </script>

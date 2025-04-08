@@ -8,7 +8,7 @@
         body {
             margin: 0;
             padding: 0;
-            height: 300vh; /* Taller page to allow scrolling */
+            height: 200vh; /* Taller page to allow scrolling */
             background-color: white;
             font-family: Arial, Helvetica, sans-serif;
             overflow-x: hidden;
@@ -145,12 +145,48 @@
     </audio>
     
     <script>
+        // Define available assets
+        const imageSet = [
+            {
+                image1: 'assets/image1.png',
+                image2: 'assets/image2.png',
+                audio: 'assets/mehlbaum202504005_III.mp3'
+            },
+            {
+                image1: 'assets/image3.png',
+                image2: 'assets/image4.png',
+                audio: 'assets/mehlbaum20240308.mp3'
+            },
+            {
+                image1: 'assets/image5.png',
+                image2: 'assets/image6.png',
+                audio: 'assets/mehlbaum20250216II.mp3'
+            }
+        ];
+
+        // Function to get random assets
+        function getRandomAssets() {
+            const randomIndex = Math.floor(Math.random() * imageSet.length);
+            return imageSet[randomIndex];
+        }
+
+        // Set random assets on page load
+        const selectedAssets = getRandomAssets();
+        
+        // Get DOM elements
         const music = document.getElementById('music');
         const listenBox = document.getElementById('listenBox');
-        const dots = document.querySelectorAll('.dot');
         const title = document.getElementById('title');
         const image1 = document.getElementById('image1');
         const image2 = document.getElementById('image2');
+
+        // Set sources
+        image1.src = selectedAssets.image1;
+        image2.src = selectedAssets.image2;
+        music.innerHTML = `<source src="${selectedAssets.audio}" type="audio/mpeg">
+        Your browser does not support the audio element.`;
+
+        const dots = document.querySelectorAll('.dot');
         
         let isPlaying = false;
         
@@ -163,11 +199,11 @@
             const totalScrollRatio = scrollPosition / maxScroll;
             
             // Title effect - growing and overlapping
-            const scaleFactor = 1 + scrollRatio * 0.8;
-            const letterSpacingValue = -0.05 - scrollRatio * 0.3;
+            const scaleFactor = 1 + scrollRatio * 0.1;
+            const letterSpacingValue = -0.1 - scrollRatio * 0.1;
             title.style.fontSize = `calc(15vw * ${scaleFactor})`;
             title.style.letterSpacing = `${letterSpacingValue}em`;
-            const shift = scrollRatio * 20;
+            const shift = scrollRatio * 10;
             title.style.transform = `translateX(${Math.sin(scrollPosition/100) * shift}px)`;
             
             // Image blending effect - more gradual as requested
@@ -200,7 +236,6 @@
 
         const dataArray = new Uint8Array(analyser.frequencyBinCount);
 
-        // Add this at the start of your script
         music.addEventListener('loadedmetadata', () => {
             console.log('Audio metadata loaded, duration:', music.duration);
         });
@@ -293,7 +328,7 @@
     </script>
     <div style="position: fixed; bottom: 20px; right: 20px; z-index: 3;" class="impressum-link">
         <a href="impressum.html" style="color: #333; text-decoration: none; font-size: 12px; font-family: Arial, sans-serif;">
-            Impressum
+            info
         </a>
     </div>
 </body>
